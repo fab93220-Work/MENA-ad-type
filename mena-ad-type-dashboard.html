@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MENA Ad Type Performance — by Country</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f5f4f0;
+    color: #1a1a18;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  .page-header {
+    margin-bottom: 2rem;
+  }
+
+  .page-header h1 {
+    font-size: 22px;
+    font-weight: 500;
+    color: #1a1a18;
+    margin-bottom: 4px;
+  }
+
+  .page-header p {
+    font-size: 14px;
+    color: #888780;
+  }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #888780;
+    margin: 0 0 10px;
+  }
+
+  .tab-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 1.5rem;
+  }
+
+  .tab {
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: 0.5px solid #c8c7be;
+    font-size: 13px;
+    cursor: pointer;
+    background: #fff;
+    color: #5f5e5a;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+
+  .tab:hover { background: #f1efe8; }
+
+  .tab.active {
+    background: #e6f1fb;
+    border-color: #378add;
+    color: #185fa5;
+    font-weight: 500;
+  }
+
+  .country-panel { display: none; }
+  .country-panel.active { display: block; }
+
+  .meta-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 1.2rem;
+  }
+
+  .metric {
+    background: #eeecea;
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+
+  .metric-label {
+    font-size: 12px;
+    color: #888780;
+    margin-bottom: 4px;
+  }
+
+  .metric-value {
+    font-size: 20px;
+    font-weight: 500;
+    color: #1a1a18;
+  }
+
+  .winner-tag {
+    display: inline-block;
+    background: #e6f1fb;
+    border: 0.5px solid #378add;
+    color: #185fa5;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 11px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+  }
+
+  .warning-tag {
+    display: inline-block;
+    background: #faeeda;
+    border: 0.5px solid #ba7517;
+    color: #854f0b;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 11px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+  }
+
+  .chart-wrap {
+    position: relative;
+    width: 100%;
+    background: #fff;
+    border-radius: 12px;
+    border: 0.5px solid #d3d1c7;
+    padding: 1.25rem;
+    margin-bottom: 10px;
+  }
+
+  .note {
+    font-size: 13px;
+    color: #5f5e5a;
+    padding: 10px 14px;
+    background: #fff;
+    border-radius: 8px;
+    border: 0.5px solid #d3d1c7;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+  }
+
+  .legend-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #5f5e5a;
+  }
+
+  .legend-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .thin-data-banner {
+    background: #faeeda;
+    border: 0.5px solid #ba7517;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #854f0b;
+    margin-bottom: 1.2rem;
+    line-height: 1.6;
+  }
+
+  .red-box {
+    border-radius: 8px;
+    padding: 10px 14px;
+    background: #fcebeb;
+    border: 0.5px solid #a32d2d;
+    margin-bottom: 1.5rem;
+    font-size: 13px;
+    color: #791f1f;
+    line-height: 1.6;
+  }
+
+  .red-box strong {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+
+  .footer {
+    font-size: 12px;
+    color: #b4b2a9;
+    margin-top: 2rem;
+    text-align: center;
+  }
+
+  @media (max-width: 500px) {
+    .meta-row { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="page-header">
+    <h1>MENA — Ad Type Performance by Country</h1>
+    <p>90 ads · 4,700 leads · spend in USD · reporting period ends 15 Apr 2026</p>
+  </div>
+
+  <p class="section-label">Select a country</p>
+  <div class="tab-row">
+    <button class="tab active" onclick="showCountry('ae', this)">🇦🇪 UAE</button>
+    <button class="tab" onclick="showCountry('om', this)">🇴🇲 Oman</button>
+    <button class="tab" onclick="showCountry('lb', this)">🇱🇧 Lebanon</button>
+    <button class="tab" onclick="showCountry('sa', this)">🇸🇦 Saudi Arabia</button>
+  </div>
+
+  <!-- UAE -->
+  <div class="country-panel active" id="panel-ae">
+    <div class="meta-row">
+      <div class="metric"><div class="metric-label">Total leads</div><div class="metric-value">4,025</div></div>
+      <div class="metric"><div class="metric-label">Total spend</div><div class="metric-value">$23,676</div></div>
+      <div class="metric"><div class="metric-label">Ads running</div><div class="metric-value">68</div></div>
+    </div>
+    <span class="winner-tag">Top format: Video – Generic · $3.60 CPL · 504 leads</span>
+    <div class="legend-row">
+      <div class="legend-item"><div class="legend-swatch" style="background:#185fa5"></div>Efficient (≤$6)</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#378add"></div>Mid-tier ($6–$8)</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#888780"></div>Expensive ($8+)</div>
+    </div>
+    <div class="chart-wrap" style="height:320px">
+      <canvas id="chart-ae" role="img" aria-label="UAE ad type weighted CPL bar chart">Video Generic $3.60, Carousel $4.04, Campaign Video $5.24, TSV $5.25, Split Screen $5.42, UGC Staff $6.06, UGC Members $6.78, HQ Static $7.29, Landmark Video $7.73, Workout $9.99.</canvas>
+    </div>
+    <div class="note">The dominant MENA market with the broadest format mix. Video – Generic and Carousel lead on efficiency — Carousel in particular is a standout at $4.04 CPL and 668 leads, a format that barely features in Europe or APAC. TSV performs well here ($5.25) unlike Singapore where it struggles. Workout is the weakest format at $9.99 — consistent with most other markets globally.</div>
+    <div class="red-box">
+      <strong>Budget alert — WhatsApp Lead format</strong>
+      3 ads running as WhatsApp Lead format generated 0 leads. This channel appears to not be converting and should be paused or restructured.
+    </div>
+  </div>
+
+  <!-- Oman -->
+  <div class="country-panel" id="panel-om">
+    <div class="meta-row">
+      <div class="metric"><div class="metric-label">Total leads</div><div class="metric-value">464</div></div>
+      <div class="metric"><div class="metric-label">Total spend</div><div class="metric-value">$1,009</div></div>
+      <div class="metric"><div class="metric-label">Ads running</div><div class="metric-value">6</div></div>
+    </div>
+    <span class="winner-tag">🚨 Undertested — all 3 formats under $2.25 CPL · scale immediately</span>
+    <div class="legend-row">
+      <div class="legend-item"><div class="legend-swatch" style="background:#185fa5"></div>Efficient (≤$6)</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#378add"></div>Mid-tier ($6–$8)</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#888780"></div>Expensive ($8+)</div>
+    </div>
+    <div class="chart-wrap" style="height:180px">
+      <canvas id="chart-om" role="img" aria-label="Oman ad type weighted CPL bar chart">Image Generic $2.06, TSV $2.16, UGC Members $2.21.</canvas>
+    </div>
+    <div class="note">The most efficient market in the entire MENA region — and arguably across all three regions. Only 6 ads and $1,009 spend, but every single format is delivering under $2.25 CPL. Image – Generic, TSV and UGC – Members are all clustered together, suggesting the market is broadly receptive. This is the clearest case in the data for an immediate budget increase.</div>
+  </div>
+
+  <!-- Lebanon -->
+  <div class="country-panel" id="panel-lb">
+    <div class="meta-row">
+      <div class="metric"><div class="metric-label">Total leads</div><div class="metric-value">170</div></div>
+      <div class="metric"><div class="metric-label">Total spend</div><div class="metric-value">$1,435</div></div>
+      <div class="metric"><div class="metric-label">Ads running</div><div class="metric-value">9</div></div>
+    </div>
+    <span class="winner-tag">Top format: Image – Generic · $6.33 CPL · 75 leads</span>
+    <div class="legend-row">
+      <div class="legend-item"><div class="legend-swatch" style="background:#185fa5"></div>Efficient (≤$6)</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#378add"></div>Mid-tier ($6–$8)</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#888780"></div>Expensive ($8+)</div>
+    </div>
+    <div class="chart-wrap" style="height:180px">
+      <canvas id="chart-lb" role="img" aria-label="Lebanon ad type weighted CPL bar chart">Image Generic $6.33, Landmark Static $9.89, Landmark Video $10.22.</canvas>
+    </div>
+    <div class="note">Limited format variety with only 3 types tested across 9 ads. Image – Generic is the clear winner — Landmark formats are expensive relative to what's available. Broader format testing, particularly TSV and UGC – Members given their performance in Oman and UAE, would be a logical next step.</div>
+  </div>
+
+  <!-- Saudi Arabia -->
+  <div class="country-panel" id="panel-sa">
+    <div class="thin-data-banner">
+      ⚠️ Thin data — 7 ads, 41 leads, single format tested. Directional only.
+    </div>
+    <div class="meta-row">
+      <div class="metric"><div class="metric-label">Total leads</div><div class="metric-value">41</div></div>
+      <div class="metric"><div class="metric-label">Total spend</div><div class="metric-value">$248</div></div>
+      <div class="metric"><div class="metric-label">Ads running</div><div class="metric-value">7</div></div>
+    </div>
+    <span class="warning-tag">Single format tested: Landmark Video · $4.79 CPL</span>
+    <div class="chart-wrap" style="height:140px">
+      <canvas id="chart-sa" role="img" aria-label="Saudi Arabia ad type weighted CPL bar chart">Landmark Video $4.79.</canvas>
+    </div>
+    <div class="note">Only one format has been tested in Saudi Arabia. The $4.79 CPL for Landmark Video is encouraging, but drawing any conclusions from a single format across 7 ads would be premature. Saudi Arabia is a significant market that warrants a proper multi-format test with dedicated budget before any scaling decisions are made.</div>
+  </div>
+
+  <div class="footer">MENA Regional Report · Data through 15 Apr 2026 · Spend reported in USD</div>
+
+</div>
+
+<script>
+function showCountry(id, btn) {
+  document.querySelectorAll('.country-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+const gridColor = 'rgba(0,0,0,0.06)';
+const textColor = '#888780';
+
+function barColor(cpl) {
+  if (cpl <= 6)  return '#185fa5';
+  if (cpl <= 8)  return '#378add';
+  return '#888780';
+}
+
+function makeChart(id, data) {
+  const sorted = [...data].sort((a, b) => a.cpl - b.cpl);
+  new Chart(document.getElementById(id), {
+    type: 'bar',
+    data: {
+      labels: sorted.map(d => d.label),
+      datasets: [{
+        data: sorted.map(d => d.cpl),
+        backgroundColor: sorted.map(d => barColor(d.cpl)),
+        borderRadius: 4,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ' $' + ctx.raw.toFixed(2) + ' CPL · ' + sorted[ctx.dataIndex].leads + ' leads'
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: gridColor },
+          ticks: { color: textColor, callback: v => '$' + v },
+          title: { display: true, text: 'Weighted CPL (USD)', color: textColor, font: { size: 11 } }
+        },
+        y: {
+          grid: { display: false },
+          ticks: { color: textColor, font: { size: 13 } }
+        }
+      }
+    }
+  });
+}
+
+makeChart('chart-ae', [
+  { label: 'Video – Generic',  cpl: 3.60, leads: 504 },
+  { label: 'Carousel',         cpl: 4.04, leads: 668 },
+  { label: 'Campaign Video',   cpl: 5.24, leads: 421 },
+  { label: 'TSV',              cpl: 5.25, leads: 385 },
+  { label: 'Split Screen',     cpl: 5.42, leads: 35  },
+  { label: 'UGC – Staff',      cpl: 6.06, leads: 390 },
+  { label: 'UGC – Members',    cpl: 6.78, leads: 847 },
+  { label: 'HQ Static Image',  cpl: 7.29, leads: 191 },
+  { label: 'Landmark Video',   cpl: 7.73, leads: 380 },
+  { label: 'Workout',          cpl: 9.99, leads: 204 },
+]);
+
+makeChart('chart-om', [
+  { label: 'Image – Generic',  cpl: 2.06, leads: 79  },
+  { label: 'TSV',              cpl: 2.16, leads: 105 },
+  { label: 'UGC – Members',    cpl: 2.21, leads: 280 },
+]);
+
+makeChart('chart-lb', [
+  { label: 'Image – Generic',  cpl: 6.33,  leads: 75 },
+  { label: 'Landmark Static',  cpl: 9.89,  leads: 33 },
+  { label: 'Landmark Video',   cpl: 10.22, leads: 62 },
+]);
+
+makeChart('chart-sa', [
+  { label: 'Landmark Video', cpl: 4.79, leads: 41 },
+]);
+</script>
+</body>
+</html>
